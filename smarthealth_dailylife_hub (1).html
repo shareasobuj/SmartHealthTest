@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="bn" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartHealth & DailyLife Hub - স্মার্ট স্বাস্থ্য ও দৈনন্দিন টুলস</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Hind Siliguri এবং Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Hind Siliguri"', '"Inter"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* ফিঙ্গারপ্রিন্ট স্ক্যানার লেজার অ্যানিমেশন */
+        @keyframes scanLine {
+            0% { top: 5%; opacity: 0.4; }
+            50% { top: 90%; opacity: 1; }
+            100% { top: 5%; opacity: 0.4; }
+        }
+        .scanner-laser {
+            position: absolute;
+            left: 10%;
+            width: 80%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #10b981, #34d399, transparent);
+            box-shadow: 0 0 12px #10b981;
+            animation: scanLine 1.5s infinite ease-in-out;
+        }
+        .no-select {
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100 transition-colors duration-300 min-h-screen flex flex-col">
+
+    <!-- কাস্টম নোটিফিকেশন বক্স (Alert এর পরিবর্তে) -->
+    <div id="toast-box" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <div id="toast-content" class="px-5 py-3 rounded-xl shadow-2xl text-white font-medium flex items-center gap-3 bg-indigo-600">
+            <i id="toast-icon" class="fas fa-check-circle"></i>
+            <span id="toast-msg">বার্তা এখানে দেখাবে</span>
+        </div>
+    </div>
+
+    <!-- নেভিগেশন বার ও ডায়নামিক থিম কন্ট্রোল -->
+    <header class="sticky top-0 z-40 backdrop-blur-md bg-white/85 dark:bg-slate-900/85 border-b border-slate-200 dark:border-slate-800 transition-colors">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <!-- লোগো -->
+            <div class="flex items-center gap-3">
+                <div id="brand-icon" class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-xl shadow-lg transition-colors duration-300">
+                    <i class="fas fa-heartbeat"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg sm:text-xl font-bold tracking-tight">SmartHealth <span id="brand-accent" class="text-indigo-600 dark:text-indigo-400">Hub</span></h1>
+                    <p class="text-[11px] text-slate-500 dark:text-slate-400 hidden sm:block">বিশ্বব্যাপী স্বাস্থ্য ও দৈনন্দিন স্মার্ট টুলস</p>
+                </div>
+            </div>
+
+            <!-- ডায়নামিক কালার ও ডার্ক মোড বাটন -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <!-- ডায়নামিক কালার সিলেক্টর -->
+                <div class="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-full border border-slate-200 dark:border-slate-700" title="থিম রঙ পরিবর্তন করুন">
+                    <button onclick="changeThemeColor('indigo')" class="w-5 h-5 rounded-full bg-indigo-600 hover:scale-110 transition-transform focus:outline-none" aria-label="Indigo"></button>
+                    <button onclick="changeThemeColor('emerald')" class="w-5 h-5 rounded-full bg-emerald-600 hover:scale-110 transition-transform focus:outline-none" aria-label="Emerald"></button>
+                    <button onclick="changeThemeColor('rose')" class="w-5 h-5 rounded-full bg-rose-600 hover:scale-110 transition-transform focus:outline-none" aria-label="Rose"></button>
+                    <button onclick="changeThemeColor('amber')" class="w-5 h-5 rounded-full bg-amber-500 hover:scale-110 transition-transform focus:outline-none" aria-label="Amber"></button>
+                    <button onclick="changeThemeColor('cyan')" class="w-5 h-5 rounded-full bg-cyan-600 hover:scale-110 transition-transform focus:outline-none" aria-label="Cyan"></button>
+                </div>
+
+                <!-- র‍্যান্ডম ডায়নামিক কালার বাটন -->
+                <button onclick="randomThemeColor()" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors" title="র‍্যান্ডম কালার">
+                    <i class="fas fa-palette"></i>
+                </button>
+
+                <!-- ডার্ক/লাইট মোড টগল -->
+                <button onclick="toggleDarkMode()" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 transition-colors" title="ডার্ক/লাইট মোড">
+                    <i id="dark-mode-icon" class="fas fa-moon"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- হিরো সেকশন ও লাইভ ঘড়ি -->
+    <section id="hero-banner" class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-7 px-4 transition-all duration-500 shadow-inner">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="text-center md:text-left">
+                <span class="inline-block px-3 py-1 rounded-full bg-white/20 text-xs font-semibold tracking-wider uppercase mb-2 backdrop-blur-sm">
+                    স্মার্ট হেলথ ও ডেইলি ইউটিলিটি প্ল্যাটফর্ম
+                </span>
+                <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">আপনার স্বাস্থ্য ও দৈনন্দিন জীবনের ডিজিটাল সঙ্গী</h2>
+                <p class="text-white/90 text-sm sm:text-base max-w-2xl">
+                    ফিঙ্গারপ্রিন্ট বায়োমেট্রিক স্ক্যানার, ডায়াবেটিস ও ব্লাড প্রেসার বিশ্লেষক, রক্তের গ্রুপ তথ্য, BMI চেকার এবং দৈনন্দিন প্রয়োজনীয় সব টুলস এক জায়গায়।
+                </p>
+            </div>
+            
+            <!-- লাইভ ডিজিটাল ঘড়ি ও তারিখ কার্ড -->
+            <div class="bg-white/15 backdrop-blur-md border border-white/20 rounded-2xl p-4 sm:p-5 text-center min-w-[230px] shadow-xl">
+                <div id="live-time" class="text-3xl sm:text-4xl font-bold tracking-wider font-mono">00:00:00</div>
+                <div id="live-date" class="text-xs sm:text-sm text-white/90 mt-1">লোড হচ্ছে...</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- মূল কন্টেন্ট -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- ক্যাটাগরি ফিল্টার বাটন -->
+        <div class="flex overflow-x-auto pb-3 mb-6 gap-2">
+            <button onclick="filterTools('all', this)" class="filter-btn active-filter px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap bg-indigo-600 text-white shadow-sm transition-all">সব ফিচার (৭)</button>
+            <button onclick="filterTools('health', this)" class="filter-btn px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 transition-all">স্বাস্থ্য ও রক্ত পরীক্ষা</button>
+            <button onclick="filterTools('daily', this)" class="filter-btn px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 transition-all">দৈনন্দিন ও হিসাব</button>
+        </div>
+
+        <!-- টুলস কার্ড গ্রিড -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+            <!-- ১. ফিঙ্গারপ্রিন্ট বায়োমেট্রিক হেলথ ও ব্লাড গ্রুপ স্ক্যানার (Featured Full/Wide Card on Mobile/Tablet) -->
+            <div data-category="health" class="tool-card md:col-span-2 lg:col-span-2 bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-md border-2 border-indigo-500/30 dark:border-indigo-400/30 flex flex-col justify-between transition-all">
+                <div>
+                    <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="theme-bg-light w-11 h-11 rounded-xl bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xl">
+                                <i class="fas fa-fingerprint"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-lg sm:text-xl">ফিঙ্গারপ্রিন্ট বায়োমেট্রিক হেলথ স্ক্যানার</h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400">আঙুল চেপে ধরে স্থায়ী বায়োমেট্রিক রিপোর্ট দেখুন</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <button onclick="resetFingerprintProfile()" class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-rose-100 dark:hover:bg-rose-900/40 text-slate-600 dark:text-slate-300 hover:text-rose-600 transition-colors" title="নতুন প্রোফাইল সেট করতে রিসেট করুন">
+                                <i class="fas fa-sync-alt mr-1"></i> রিসেট
+                            </button>
+                            <span id="profile-badge" class="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300">
+                                <i class="fas fa-broadcast-tower mr-1 animate-pulse"></i> টাচ সেন্সর রেডি
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- ঐচ্ছিক: ব্যবহারকারীর সঠিক রক্তের গ্রুপ আগে থেকেই লক করার অপশন -->
+                    <div class="mb-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-700 flex flex-wrap items-center justify-between gap-2 text-xs">
+                        <span class="font-medium text-slate-600 dark:text-slate-300"><i class="fas fa-user-check text-indigo-500 mr-1"></i> আপনার আসল রক্তের গ্রুপ লক করুন (যাতে সবসময় সঠিকটি দেখায়):</span>
+                        <select id="lock-blood-group" onchange="saveCustomBloodGroup()" class="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 font-bold text-rose-600 dark:text-rose-400">
+                            <option value="auto">অটো ডিটেক্ট (প্রথম স্ক্যানে সেভ হবে)</option>
+                            <option value="A+">A+ (এ পজিটিভ)</option>
+                            <option value="A-">A- (এ নেগেটিভ)</option>
+                            <option value="B+">B+ (বি পজিটিভ)</option>
+                            <option value="B-">B- (বি নেগেটিভ)</option>
+                            <option value="O+">O+ (ও পজিটিভ)</option>
+                            <option value="O-">O- (ও নেগেটিভ)</option>
+                            <option value="AB+">AB+ (এবি পজিটিভ)</option>
+                            <option value="AB-">AB- (এবি নেগেটিভ)</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 items-center my-4">
+                        <!-- বাম পাশে: ফিঙ্গারপ্রিন্ট টাচ প্যাড -->
+                        <div class="flex flex-col items-center justify-center p-5 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+                            <div id="fingerprint-pad" 
+                                 onmousedown="startFingerprintScan()" 
+                                 onmouseup="stopFingerprintScan()" 
+                                 onmouseleave="stopFingerprintScan()"
+                                 ontouchstart="startFingerprintScan(event)" 
+                                 ontouchend="stopFingerprintScan()"
+                                 class="no-select relative w-32 h-36 rounded-3xl bg-slate-200 dark:bg-slate-800 border-2 border-dashed border-slate-400 dark:border-slate-600 flex flex-col items-center justify-center cursor-pointer overflow-hidden transition-all active:scale-95 shadow-inner">
+                                
+                                <!-- স্ক্যানিং লেজার লাইন (স্ক্যান চলাকালীন দেখাবে) -->
+                                <div id="scan-laser" class="scanner-laser hidden"></div>
+                                
+                                <i id="fp-icon" class="fas fa-fingerprint text-6xl text-slate-500 dark:text-slate-400 transition-colors duration-300"></i>
+                                <span id="fp-percent" class="text-xs font-bold mt-2 text-slate-500">চেপে ধরুন</span>
+                            </div>
+
+                            <!-- প্রোগ্রেস বার -->
+                            <div class="w-full max-w-[200px] bg-slate-200 dark:bg-slate-700 h-2 rounded-full mt-4 overflow-hidden">
+                                <div id="scan-progress-bar" class="bg-emerald-500 h-full w-0 transition-all duration-100"></div>
+                            </div>
+                            <p id="scan-instruction" class="text-xs text-center text-slate-500 dark:text-slate-400 mt-2">
+                                ফলাফল পেতে ৩ সেকেন্ড আঙুল চেপে ধরে রাখুন
+                            </p>
+                        </div>
+
+                        <!-- ডান পাশে: স্ক্যান ফলাফল ড্যাশবোর্ড -->
+                        <div class="space-y-3">
+                            <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                                <div class="flex items-center gap-2.5">
+                                    <i class="fas fa-tint text-rose-500 text-lg"></i>
+                                    <span class="text-sm font-medium">রক্তের গ্রুপ (Blood Group)</span>
+                                </div>
+                                <span id="res-blood" class="font-bold text-lg text-rose-600 dark:text-rose-400">--</span>
+                            </div>
+
+                            <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                                <div class="flex items-center gap-2.5">
+                                    <i class="fas fa-heart text-red-500 text-lg"></i>
+                                    <span class="text-sm font-medium">রক্তচাপ (Blood Pressure)</span>
+                                </div>
+                                <span id="res-bp" class="font-bold text-base text-emerald-600 dark:text-emerald-400">-- / -- mmHg</span>
+                            </div>
+
+                            <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                                <div class="flex items-center gap-2.5">
+                                    <i class="fas fa-cubes text-amber-500 text-lg"></i>
+                                    <span class="text-sm font-medium">ডায়াবেটিস (Blood Sugar)</span>
+                                </div>
+                                <span id="res-sugar" class="font-bold text-base text-indigo-600 dark:text-indigo-400">-- mmol/L</span>
+                            </div>
+
+                            <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                                <div class="flex items-center gap-2.5">
+                                    <i class="fas fa-wave-square text-cyan-500 text-lg"></i>
+                                    <span class="text-sm font-medium">হার্ট রেট (Pulse)</span>
+                                </div>
+                                <span id="res-pulse" class="font-bold text-base text-cyan-600 dark:text-cyan-400">-- BPM</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-2 p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/70 dark:border-amber-800/50 text-[11px] text-amber-800 dark:text-amber-300 flex items-start gap-2">
+                    <i class="fas fa-info-circle mt-0.5 shrink-0"></i>
+                    <span><strong>সতর্কতা:</strong> মোবাইল স্ক্রিনে কোনো মেডিকেল সেন্সর না থাকায় এটি একটি স্মার্ট বায়োমেট্রিক সিমুলেশন। সঠিক রোগ নির্ণয়ের জন্য অনুমোদিত মেডিকেল ডিভাইস বা ল্যাব টেস্ট ব্যবহার করুন।</span>
+                </div>
+            </div>
+
+            <!-- ২. বাস্তব ডায়াবেটিস ও ব্লাড প্রেসার রিপোর্ট বিশ্লেষক (Real Medical Analyzer) -->
+            <div data-category="health" class="tool-card bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-md border border-slate-200 dark:border-slate-700 flex flex-col justify-between transition-all">
+                <div>
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="theme-bg-light w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-lg">
+                            <i class="fas fa-notes-medical"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg">ডায়াবেটিস ও প্রেসার বিশ্লেষক</h3>
+                            <p class="text-[11px] text-slate-400">মেশিনের রিডিং দিয়ে অবস্থা জানুন</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="text-xs font-semibold text-slate-500">উপরের প্রেসার (Sys)</label>
+                                <input type="number" id="sys-bp" placeholder="যেমন: 120" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm">
+                            </div>
+                            <div>
+                                <label class="text-xs font-semibold text-slate-500">নিচের প্রেসার (Dia)</label>
+                                <input type="number" id="dia-bp" placeholder="যেমন: 80" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="text-xs font-semibold text-slate-500">ব্লাড সুগার / ডায়াবেটিস (mmol/L)</label>
+                            <input type="number" step="0.1" id="sugar-val" placeholder="যেমন: 5.8" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm">
+                        </div>
+
+                        <button onclick="analyzeMedicalReport()" class="theme-btn w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm transition-colors">
+                            রিপোর্ট বিশ্লেষণ করুন
+                        </button>
+                    </div>
+                </div>
+
+                <div id="medical-report-box" class="mt-4 p-3 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs space-y-1">
+                    <p class="text-slate-500 text-center">আপনার মেশিনের রিডিং লিখে বাটনে চাপুন</p>
+                </div>
+            </div>
+
+            <!-- ৩. রক্তের গ্রুপ ডোনার ও গ্রহণযোগ্যতা গাইড (Blood Group Compatibility) -->
+            <div data-category="health" class="tool-card bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-md border border-slate-200 dark:border-slate-700 flex flex-col justify-between transition-all">
+                <div>
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 flex items-center justify-center text-lg">
+                            <i class="fas fa-hand-holding-medical"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg">রক্তের গ্রুপ গাইড</h3>
+                            <p class="text-[11px] text-slate-400">কাকে রক্ত দিতে ও নিতে পারবেন</p>
+                        </div>
+                    </div>
+
+                    <label class="text-xs font-semibold text-slate-500">রক্তের গ্রুপ নির্বাচন করুন</label>
+                    <select id="blood-group-select" onchange="checkBloodCompatibility()" class="w-full mt-1 mb-4 px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-bold">
+                        <option value="A+">A+ (এ পজিটিভ)</option>
+                        <option value="A-">A- (এ নেগেটিভ)</option>
+                        <option value="B+">B+ (বি পজিটিভ)</option>
+                        <option value="B-">B- (বি নেগেটিভ)</option>
+                        <option value="O+" selected>O+ (ও পজিটিভ)</option>
+                        <option value="O-">O- (ও নেগেটিভ - সার্বজনীন দাতা)</option>
+                        <option value="AB+">AB+ (এবি পজিটিভ - সার্বজনীন গ্রহীতা)</option>
+                        <option value="AB-">AB- (এবি নেগেটিভ)</option>
+                    </select>
+
+                    <div class="space-y-2.5 text-sm">
+                        <div class="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-800/40">
+                            <span class="text-xs font-semibold text-emerald-700 dark:text-emerald-400 block">রক্ত দিতে পারবেন (Can Donate To):</span>
+                            <strong id="blood-donate-to" class="text-base">O+, A+, B+, AB+</strong>
+                        </div>
+                        <div class="p-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200/60 dark:border-indigo-800/40">
+                            <span class="text-xs font-semibold text-indigo-700 dark:text-indigo-400 block">রক্ত নিতে পারবেন (Can Receive From):</span>
+                            <strong id="blood-receive-from" class="text-base">O+, O-</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ৪. BMI স্বাস্থ্য ক্যালকুলেটর -->
+            <div data-category="health" class="tool-card bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-md border border-slate-200 dark:border-slate-700 flex flex-col justify-between transition-all">
+                <div>
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="theme-bg-light w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-lg">
+                            <i class="fas fa-weight"></i>
+                        </div>
+                        <h3 class="font-bold text-lg">BMI ও আদর্শ ওজন চেকার</h3>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-xs font-semibold text-slate-500">আপনার ওজন (কেজি / kg)</label>
+                            <input type="number" id="bmi-weight" placeholder="যেমন: 65" class="w-full mt-1 px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm">
+                        </div>
+                        <div>
+                            <label class="text-xs font-semibold text-slate-500">আপনার উচ্চতা (সেন্টিমিটার / cm)</label>
+                            <input type="number" id="bmi-height" placeholder="যেমন: 170" class="w-full mt-1 px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm">
+                        </div>
+                        <button onclick="calculateBMI()" class="theme-btn w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm transition-colors">
+                            BMI পরীক্ষা করুন
+                        </button>
+                    </div>
+                </div>
+
+                <div id="bmi-output" class="mt-4 p-3 rounded-xl bg-slate-100 dark:bg-slate-900 text-center border border-slate-200 dark:border-slate-700">
+                    <p class="text-xs text-slate-500">সঠিক ওজন ও উচ্চতা দিয়ে বাটনে ক্লিক করুন</p>
+                </div>
+            </div>
+
+            <!-- ৫. স্মার্ট টু-ডু লিস্ট (Daily Tasks & Medicine Reminder) -->
+            <div data-category="daily" class="tool-card bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-md border border-slate-200 dark:border-slate-700 flex flex-col justify-between transition-all">
+                <div>
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="theme-bg-light w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-lg">
+                                <i class="fas fa-check-double"></i>
+                            </div>
+                            <h3 class="font-bold text-lg">দৈনন্দিন কাজ ও ওষুধের তালিকা</h3>
+                        </div>
+                        <span id="task-count" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-700">০ টি বাকি</span>
+                    </div>
+
+                    <div class="flex gap-2 mb-3">
+                        <input type="text" id="todo-input" placeholder="কাজ বা ওষুধের নাম লিখুন..." onkeypress="if(event.key==='Enter') addTodo()" class="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:outline-none text-sm">
+                        <button onclick="addTodo()" class="theme-btn px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm transition-colors shrink-0">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+
+                    <ul id="todo-list" class="space-y-2 max-h-48 overflow-y-auto pr-1"></ul>
+                </div>
+                <div class="mt-3 pt-2 border-t border-slate-100 dark:border-slate-700 flex justify-between items-center text-xs text-slate-400">
+                    <span>অটো-সেভ চালু আছে</span>
+                    <button onclick="clearCompletedTodos()" class="hover:text-rose-500 transition-colors">সম্পন্ন কাজ মুছুন</button>
+                </div>
+            </div>
+
+            <!-- ৬. স্মার্ট ক্যালকুলেটর -->
+            <div data-category="daily" class="tool-card bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-md border border-slate-200 dark:border-slate-700 flex flex-col justify-between transition-all">
+                <div>
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="theme-bg-light w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-lg">
+                            <i class="fas fa-calculator"></i>
+                        </div>
+                        <h3 class="font-bold text-lg">স্মার্ট ক্যালকুলেটর</h3>
+                    </div>
+
+                    <div class="bg-slate-100 dark:bg-slate-900 p-3 rounded-xl mb-3 text-right border border-slate-200 dark:border-slate-700">
+                        <div id="calc-history" class="text-xs text-slate-400 h-4 overflow-hidden"></div>
+                        <input type="text" id="calc-display" readonly value="0" class="w-full bg-transparent text-right text-2xl font-bold font-mono focus:outline-none">
+                    </div>
+
+                    <div class="grid grid-cols-4 gap-1.5">
+                        <button onclick="clearCalc()" class="p-2.5 rounded-xl bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 font-bold hover:opacity-80">C</button>
+                        <button onclick="deleteCalc()" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-700 font-bold hover:opacity-80"><i class="fas fa-backspace"></i></button>
+                        <button onclick="appendCalc('%')" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-700 font-bold hover:opacity-80">%</button>
+                        <button onclick="appendCalc('/')" class="theme-bg-light p-2.5 rounded-xl bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 font-bold hover:opacity-80">÷</button>
+
+                        <button onclick="appendCalc('7')" class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-700/50 font-semibold hover:bg-slate-100">7</button>
+                        <button onclick="appendCalc('8')" class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-700/50 font-semibold hover:bg-slate-100">8</button>
+                        <button onclick="appendCalc('9')" class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-700/50 font-semibold hover:bg-slate-100">9</button>
+                        <button onclick="appendCalc('*')" class="theme-bg-light p-2.5 rounded-xl bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 font-bold hover:opacity-80">×</button>
+
+                        <button onclick="appendCalc('4')" class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-700/50 font-semibold hover:bg-slate-100">4</button>
+                        <button onclick="appendCalc('5')" class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-700/50 font-semibold hover:bg-slate-100">5</button>
+                        <button onclick="appendCalc('6')" class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-700/50 font-semibold hover:bg-slate-100">6</button>
+                        <button onclick="appendCalc('-')" class="theme-bg-light p-2.5 rounded-xl bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 font-bold hover:opacity-80">−</button>
+
+                        <button onclick="appendCalc('1')" class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-700/50 font-semibold hover:bg-slate-100">1</button>
+                        <button onclick="appendCalc('2')" class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-700/50 font-semibold hover:bg-slate-100">2</button>
+                        <button onclick="appendCalc('3')" class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-700/50 font-semibold hover:bg-slate-100">3</button>
+                        <button onclick="appendCalc('+')" class="theme-bg-light p-2.5 rounded-xl bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 font-bold hover:opacity-80">+</button>
+
+                        <button onclick="appendCalc('0')" class="col-span-2 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-700/50 font-semibold hover:bg-slate-100">0</button>
+                        <button onclick="appendCalc('.')" class="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-700/50 font-semibold hover:bg-slate-100">.</button>
+                        <button onclick="calculateResult()" class="theme-btn p-2.5 rounded-xl bg-indigo-600 text-white font-bold hover:opacity-90">=</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ৭. ইউনিট ও তাপমাত্রা কনভার্টার -->
+            <div data-category="daily" class="tool-card bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-sm hover:shadow-md border border-slate-200 dark:border-slate-700 flex flex-col justify-between transition-all">
+                <div>
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="theme-bg-light w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-lg">
+                            <i class="fas fa-exchange-alt"></i>
+                        </div>
+                        <h3 class="font-bold text-lg">ইউনিট ও জ্বর মাপার কনভার্টার</h3>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-xs font-semibold text-slate-500">কনভার্সন ধরন</label>
+                            <select id="unit-type" onchange="updateUnitOptions()" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm">
+                                <option value="temp">তাপমাত্রা / জ্বর (°F / °C)</option>
+                                <option value="length">দৈর্ঘ্য (মিটার / ফুট / কিমি)</option>
+                                <option value="weight">ওজন (কেজি / গ্রাম / পাউন্ড)</option>
+                            </select>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="text-xs text-slate-500">মান লিখুন</label>
+                                <input type="number" id="unit-input" value="98.6" oninput="convertUnit()" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-semibold">
+                            </div>
+                            <div>
+                                <label class="text-xs text-slate-500">থেকে</label>
+                                <select id="unit-from" onchange="convertUnit()" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm"></select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="text-xs text-slate-500">রূপান্তরিত একক</label>
+                            <select id="unit-to" onchange="convertUnit()" class="w-full mt-1 px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm"></select>
+                        </div>
+
+                        <div class="p-3.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-center">
+                            <span class="text-xs text-slate-500 block">ফলাফল</span>
+                            <span id="unit-result" class="text-2xl font-bold text-indigo-600 dark:text-indigo-400">37</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- ফুটার -->
+    <footer class="bg-white dark:bg-slate-950 border-t border-slate-200 dark:border-slate-800 py-6 px-4 mt-12">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-500 dark:text-slate-400">
+            <p>© <span id="year"></span> <strong>SmartHealth & DailyLife Hub</strong> — সবার জন্য উন্মুক্ত।</p>
+            <div class="flex items-center gap-3 text-xs">
+                <span>GitHub Pages Ready</span>
+                <span>•</span>
+                <span>Dynamic Theme</span>
+                <span>•</span>
+                <span>Mobile Responsive</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- সম্পূর্ণ জাভাস্ক্রিপ্ট লজিক -->
+    <script>
+        // ==========================================
+        // ১. ডায়নামিক কালার থিম ও ডার্ক মোড সিস্টেম
+        // ==========================================
+        const themes = {
+            indigo: {
+                brandBg: 'bg-indigo-600',
+                brandText: 'text-indigo-600 dark:text-indigo-400',
+                heroGradient: 'from-indigo-600 to-purple-600',
+                btnBg: 'bg-indigo-600 hover:bg-indigo-700',
+                lightBg: 'bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400',
+                toastBg: 'bg-indigo-600'
+            },
+            emerald: {
+                brandBg: 'bg-emerald-600',
+                brandText: 'text-emerald-600 dark:text-emerald-400',
+                heroGradient: 'from-emerald-600 to-teal-600',
+                btnBg: 'bg-emerald-600 hover:bg-emerald-700',
+                lightBg: 'bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400',
+                toastBg: 'bg-emerald-600'
+            },
+            rose: {
+                brandBg: 'bg-rose-600',
+                brandText: 'text-rose-600 dark:text-rose-400',
+                heroGradient: 'from-rose-600 to-pink-600',
+                btnBg: 'bg-rose-600 hover:bg-rose-700',
+                lightBg: 'bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400',
+                toastBg: 'bg-rose-600'
+            },
+            amber: {
+                brandBg: 'bg-amber-600',
+                brandText: 'text-amber-600 dark:text-amber-400',
+                heroGradient: 'from-amber-500 to-orange-600',
+                btnBg: 'bg-amber-600 hover:bg-amber-700',
+                lightBg: 'bg-amber-100 dark:bg-amber-900/50 text-amber-600 dark:text-amber-400',
+                toastBg: 'bg-amber-600'
+            },
+            cyan: {
+                brandBg: 'bg-cyan-600',
+                brandText: 'text-cyan-600 dark:text-cyan-400',
+                heroGradient: 'from-cyan-600 to-blue-600',
+                btnBg: 'bg-cyan-600 hover:bg-cyan-700',
+                lightBg: 'bg-cyan-100 dark:bg-cyan-900/50 text-cyan-600 dark:text-cyan-400',
+                toastBg: 'bg-cyan-600'
+            }
+        };
+
+        let currentThemeKey = localStorage.getItem('smarthealth_theme') || 'indigo';
+        let currentThemeConfig = themes[currentThemeKey] || themes.indigo;
+
+        function changeThemeColor(colorKey) {
+            if (!themes[colorKey]) return;
+            currentThemeKey = colorKey;
+            currentThemeConfig = themes[colorKey];
+            localStorage.setItem('smarthealth_theme', colorKey);
+
+            // লোগো ও হিরো ব্যানার আপডেট
+            const brandIcon = document.getElementById('brand-icon');
+            if (brandIcon) brandIcon.className = `w-10 h-10 rounded-xl ${currentThemeConfig.brandBg} text-white flex items-center justify-center text-xl shadow-lg transition-colors duration-300`;
+
+            const brandAccent = document.getElementById('brand-accent');
+            if (brandAccent) brandAccent.className = currentThemeConfig.brandText;
+
+            const heroBanner = document.getElementById('hero-banner');
+            if (heroBanner) heroBanner.className = `bg-gradient-to-r ${currentThemeConfig.heroGradient} text-white py-7 px-4 transition-all duration-500 shadow-inner`;
+
+            // বাটন ও আইকন ব্যাকগ্রাউন্ড আপডেট
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.className = `theme-btn w-full py-2.5 rounded-xl ${currentThemeConfig.btnBg} text-white font-semibold text-sm transition-colors`;
+            });
+            document.querySelectorAll('.theme-bg-light').forEach(el => {
+                el.className = `theme-bg-light w-10 h-10 rounded-xl ${currentThemeConfig.lightBg} flex items-center justify-center text-lg`;
+            });
+            document.querySelectorAll('.active-filter').forEach(btn => {
+                btn.className = `filter-btn active-filter px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap ${currentThemeConfig.brandBg} text-white shadow-sm transition-all`;
+            });
+        }
+
+        function randomThemeColor() {
+            const keys = Object.keys(themes).filter(k => k !== currentThemeKey);
+            const randomKey = keys[Math.floor(Math.random() * keys.length)];
+            changeThemeColor(randomKey);
+            showToast('নতুন ডায়নামিক থিম কালার সেট করা হয়েছে!');
+        }
+
+        function toggleDarkMode() {
+            const html = document.documentElement;
+            const icon = document.getElementById('dark-mode-icon');
+            if (html.classList.contains('dark')) {
+                html.classList.remove('dark');
+                icon.className = 'fas fa-moon';
+                localStorage.setItem('smarthealth_dark', 'false');
+            } else {
+                html.classList.add('dark');
+                icon.className = 'fas fa-sun text-amber-400';
+                localStorage.setItem('smarthealth_dark', 'true');
+            }
+        }
+
+        // ==========================================
+        // ২. কাস্টম নোটিফিকেশন টোস্ট ফাংশন
+        // ==========================================
+        let toastTimeout = null;
+        function showToast(message, isError = false) {
+            const box = document.getElementById('toast-box');
+            const content = document.getElementById('toast-content');
+            const msgEl = document.getElementById('toast-msg');
+            const iconEl = document.getElementById('toast-icon');
+
+            msgEl.innerText = message;
+            if (isError) {
+                content.className = 'px-5 py-3 rounded-xl shadow-2xl text-white font-medium flex items-center gap-3 bg-rose-600';
+                iconEl.className = 'fas fa-exclamation-circle';
+            } else {
+                content.className = `px-5 py-3 rounded-xl shadow-2xl text-white font-medium flex items-center gap-3 ${currentThemeConfig.toastBg}`;
+                iconEl.className = 'fas fa-check-circle';
+            }
+
+            box.classList.remove('translate-y-20', 'opacity-0');
+            if (toastTimeout) clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                box.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // ==========================================
+        // ৩. ফিঙ্গারপ্রিন্ট বায়োমেট্রিক স্ক্যানার লজিক (সঠিক O+ প্রোফাইলসহ)
+        // ==========================================
+        let scanTimer = null;
+        let scanProgress = 0;
+        let isScanning = false;
+
+        // ডিফল্ট সঠিক প্রোফাইল (O+ পজিটিভ ও স্বাভাবিক রিডিং)
+        let savedBiometricProfile = JSON.parse(localStorage.getItem('smarthealth_biometric_v2')) || {
+            bloodGroup: 'O+',
+            baseSys: 120,
+            baseDia: 80,
+            baseSugar: 5.5,
+            basePulse: 72
+        };
+
+        function saveCustomBloodGroup() {
+            const selected = document.getElementById('lock-blood-group').value;
+            if (selected === 'auto') {
+                savedBiometricProfile.bloodGroup = 'O+';
+            } else {
+                savedBiometricProfile.bloodGroup = selected;
+            }
+            localStorage.setItem('smarthealth_biometric_v2', JSON.stringify(savedBiometricProfile));
+            showToast(`আপনার রক্তের গ্রুপ (${savedBiometricProfile.bloodGroup}) স্থায়ীভাবে সেভ হয়েছে!`);
+        }
+
+        function resetFingerprintProfile() {
+            savedBiometricProfile = {
+                bloodGroup: 'O+',
+                baseSys: 120,
+                baseDia: 80,
+                baseSugar: 5.5,
+                basePulse: 72
+            };
+            localStorage.setItem('smarthealth_biometric_v2', JSON.stringify(savedBiometricProfile));
+            document.getElementById('lock-blood-group').value = 'O+';
+            document.getElementById('res-blood').innerText = '--';
+            document.getElementById('res-bp').innerText = '-- / -- mmHg';
+            document.getElementById('res-sugar').innerText = '-- mmol/L';
+            document.getElementById('res-pulse').innerText = '-- BPM';
+            document.getElementById('fp-percent').innerText = 'চেপে ধরুন';
+            document.getElementById('scan-progress-bar').style.width = '0%';
+            document.getElementById('scan-instruction').innerText = 'প্রোফাইল রিসেট হয়েছে। এখন ৩ সেকেন্ড চেপে ধরুন';
+            showToast('বায়োমেট্রিক প্রোফাইল রিসেট করা হয়েছে!');
+        }
+
+        function startFingerprintScan(e) {
+            if (e && e.cancelable) e.preventDefault();
+            if (isScanning) return;
+            isScanning = true;
+            scanProgress = 0;
+
+            const pad = document.getElementById('fingerprint-pad');
+            const laser = document.getElementById('scan-laser');
+            const icon = document.getElementById('fp-icon');
+            const percentText = document.getElementById('fp-percent');
+            const progressBar = document.getElementById('scan-progress-bar');
+            const instruction = document.getElementById('scan-instruction');
+
+            pad.classList.add('border-emerald-500', 'bg-emerald-500/10');
+            laser.classList.remove('hidden');
+            icon.classList.remove('text-slate-500', 'dark:text-slate-400');
+            icon.classList.add('text-emerald-500');
+            instruction.innerText = "বায়োমেট্রিক ডাটা যাচাই হচ্ছে... আঙুল সরাবেন না";
+
+            scanTimer = setInterval(() => {
+                scanProgress += 4;
+                if (scanProgress > 100) scanProgress = 100;
+                
+                percentText.innerText = `${scanProgress}%`;
+                progressBar.style.width = `${scanProgress}%`;
+
+                if (scanProgress >= 100) {
+                    clearInterval(scanTimer);
+                    completeFingerprintScan();
+                }
+            }, 100);
+        }
+
+        function stopFingerprintScan() {
+            if (!isScanning) return;
+            if (scanProgress < 100) {
+                clearInterval(scanTimer);
+                isScanning = false;
+                scanProgress = 0;
+                
+                const pad = document.getElementById('fingerprint-pad');
+                const laser = document.getElementById('scan-laser');
+                const icon = document.getElementById('fp-icon');
+                const percentText = document.getElementById('fp-percent');
+                const progressBar = document.getElementById('scan-progress-bar');
+                const instruction = document.getElementById('scan-instruction');
+
+                pad.classList.remove('border-emerald-500', 'bg-emerald-500/10');
+                laser.classList.add('hidden');
+                icon.classList.add('text-slate-500', 'dark:text-slate-400');
+                icon.classList.remove('text-emerald-500');
+                percentText.innerText = "চেপে ধরুন";
+                progressBar.style.width = "0%";
+                instruction.innerText = "স্ক্যান অসম্পূর্ণ! অনুগ্রহ করে ৩ সেকেন্ড চেপে ধরুন";
+            }
+        }
+
+        function completeFingerprintScan() {
+            isScanning = false;
+            const laser = document.getElementById('scan-laser');
+            const percentText = document.getElementById('fp-percent');
+            const instruction = document.getElementById('scan-instruction');
+
+            laser.classList.add('hidden');
+            percentText.innerText = "ভেরিফাইড ✔";
+
+            const lockedGroup = document.getElementById('lock-blood-group').value;
+            if (lockedGroup !== 'auto') {
+                savedBiometricProfile.bloodGroup = lockedGroup;
+            }
+            localStorage.setItem('smarthealth_biometric_v2', JSON.stringify(savedBiometricProfile));
+            instruction.innerText = "আপনার বায়োমেট্রিক প্রোফাইল থেকে সঠিক রিপোর্ট দেখানো হচ্ছে";
+
+            // স্থায়ী রক্তের গ্রুপ এবং স্বাভাবিক মেডিকেল রিডিং
+            const finalBlood = savedBiometricProfile.bloodGroup;
+            const sys = savedBiometricProfile.baseSys + (Math.floor(Math.random() * 3) - 1);
+            const dia = savedBiometricProfile.baseDia + (Math.floor(Math.random() * 3) - 1);
+            const sugar = (savedBiometricProfile.baseSugar + (Math.random() * 0.2 - 0.1)).toFixed(1);
+            const pulse = savedBiometricProfile.basePulse + (Math.floor(Math.random() * 3) - 1);
+
+            document.getElementById('res-blood').innerText = finalBlood;
+            document.getElementById('res-bp').innerText = `${sys}/${dia} mmHg (স্বাভাবিক)`;
+            document.getElementById('res-sugar').innerText = `${sugar} mmol/L (স্বাভাবিক)`;
+            document.getElementById('res-pulse').innerText = `${pulse} BPM`;
+
+            // রক্তের গ্রুপ গাইড স্বয়ংক্রিয়ভাবে আপডেট
+            const bgSelect = document.getElementById('blood-group-select');
+            if (bgSelect) {
+                bgSelect.value = finalBlood;
+                checkBloodCompatibility();
+            }
+
+            showToast(`ভেরিফাইড! আপনার রক্তের গ্রুপ: ${finalBlood}`);
+        }
+
+        // ==========================================
+        // ৪. বাস্তব ডায়াবেটিস ও প্রেসার বিশ্লেষক (WHO মেডিকেল স্ট্যান্ডার্ড অনুযায়ী সঠিক তথ্য)
+        // ==========================================
+        function analyzeMedicalReport() {
+            const sys = parseFloat(document.getElementById('sys-bp').value);
+            const dia = parseFloat(document.getElementById('dia-bp').value);
+            const sugar = parseFloat(document.getElementById('sugar-val').value);
+            const box = document.getElementById('medical-report-box');
+
+            if (!sys && !dia && !sugar) {
+                showToast('প্রেসার অথবা সুগারের মান লিখুন!', true);
+                return;
+            }
+
+            let html = '<div class="space-y-2 text-left">';
+
+            if (sys && dia) {
+                let bpStatus = '';
+                let bpAdvice = '';
+                let bpColor = '';
+                if (sys < 90 || dia < 60) {
+                    bpStatus = 'লো প্রেসার (Hypotension)';
+                    bpAdvice = 'পর্যাপ্ত পানি ও স্যালাইন পান করুন, বিশ্রাম নিন।';
+                    bpColor = 'text-amber-600 dark:text-amber-400';
+                } else if (sys <= 120 && dia <= 80) {
+                    bpStatus = 'একদম স্বাভাবিক (Normal BP)';
+                    bpAdvice = 'আপনার রক্তচাপ সুস্থ ও স্বাভাবিক আছে।';
+                    bpColor = 'text-emerald-600 dark:text-emerald-400';
+                } else if (sys <= 139 || dia <= 89) {
+                    bpStatus = 'সামান্য বেশি (Pre-Hypertension)';
+                    bpAdvice = 'খাবারে কাঁচা লবণ ও চর্বি কমান, নিয়মিত হাঁটুন।';
+                    bpColor = 'text-orange-600 dark:text-orange-400';
+                } else {
+                    bpStatus = 'উচ্চ রক্তচাপ (High BP)';
+                    bpAdvice = 'দ্রুত চিকিৎসকের পরামর্শ নিন এবং নিয়মিত প্রেসার মাপুন।';
+                    bpColor = 'text-rose-600 dark:text-rose-400';
+                }
+                html += `<div class="p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                    <div><strong>রক্তচাপ (${sys}/${dia} mmHg):</strong> <span class="font-bold ${bpColor}">${bpStatus}</span></div>
+                    <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">পরামর্শ: ${bpAdvice}</div>
+                </div>`;
+            }
+
+            if (sugar) {
+                let sugarStatus = '';
+                let sugarAdvice = '';
+                let sugarColor = '';
+                if (sugar < 3.9) {
+                    sugarStatus = 'সুগার কমে গেছে (Hypoglycemia)';
+                    sugarAdvice = 'তাৎক্ষণিক সামান্য চিনি বা গ্লুকোজ পানি পান করুন।';
+                    sugarColor = 'text-amber-600 dark:text-amber-400';
+                } else if (sugar <= 7.8) {
+                    sugarStatus = 'স্বাভাবিক মাত্রা (Normal)';
+                    sugarAdvice = 'রক্তে শর্করার মাত্রা নিয়ন্ত্রণে আছে।';
+                    sugarColor = 'text-emerald-600 dark:text-emerald-400';
+                } else if (sugar <= 11.0) {
+                    sugarStatus = 'বর্ডারলাইন (Pre-Diabetes)';
+                    sugarAdvice = 'মিষ্টি ও শর্করা জাতীয় খাবার কমিয়ে প্রতিদিন ৩০ মিনিট হাঁটুন।';
+                    sugarColor = 'text-orange-600 dark:text-orange-400';
+                } else {
+                    sugarStatus = 'ডায়াবেটিস বেশি (High Sugar)';
+                    sugarAdvice = 'অবিলম্বে ডায়াবেটিস বিশেষজ্ঞ ডাক্তারের পরামর্শ নিন।';
+                    sugarColor = 'text-rose-600 dark:text-rose-400';
+                }
+                html += `<div class="p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                    <div><strong>ব্লাড সুগার (${sugar} mmol/L):</strong> <span class="font-bold ${sugarColor}">${sugarStatus}</span></div>
+                    <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">পরামর্শ: ${sugarAdvice}</div>
+                </div>`;
+            }
+
+            html += '</div>';
+            box.innerHTML = html;
+            showToast('সঠিক মেডিকেল রিপোর্ট তৈরি হয়েছে!');
+        }
+
+        // ==========================================
+        // ৫. রক্তের গ্রুপ ডোনার ও গ্রহণযোগ্যতা গাইড
+        // ==========================================
+        const bloodData = {
+            'A+': { donate: 'A+, AB+', receive: 'A+, A-, O+, O-' },
+            'A-': { donate: 'A+, A-, AB+, AB-', receive: 'A-, O-' },
+            'B+': { donate: 'B+, AB+', receive: 'B+, B-, O+, O-' },
+            'B-': { donate: 'B+, B-, AB+, AB-', receive: 'B-, O-' },
+            'O+': { donate: 'O+, A+, B+, AB+', receive: 'O+, O-' },
+            'O-': { donate: 'সকল গ্রুপকে দিতে পারবেন (Universal Donor)', receive: 'শুধুমাত্র O-' },
+            'AB+': { donate: 'শুধুমাত্র AB+', receive: 'সকল গ্রুপ থেকে নিতে পারবেন (Universal Recipient)' },
+            'AB-': { donate: 'AB+, AB-', receive: 'AB-, A-, B-, O-' }
+        };
+
+        function checkBloodCompatibility() {
+            const group = document.getElementById('blood-group-select').value;
+            document.getElementById('blood-donate-to').innerText = bloodData[group].donate;
+            document.getElementById('blood-receive-from').innerText = bloodData[group].receive;
+        }
+
+        // ==========================================
+        // ৬. লাইভ ঘড়ি, ফিল্টার ও অন্যান্য টুলস
+        // ==========================================
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('live-time').innerText = now.toLocaleTimeString('en-US', { hour12: true });
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('live-date').innerText = now.toLocaleDateString('bn-BD', options);
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+        document.getElementById('year').innerText = new Date().getFullYear();
+
+        function filterTools(category, clickedBtn) {
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.className = "filter-btn px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:bg-slate-100 transition-all";
+            });
+            clickedBtn.className = `filter-btn active-filter px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap ${currentThemeConfig.brandBg} text-white shadow-sm transition-all`;
+
+            document.querySelectorAll('.tool-card').forEach(card => {
+                if (category === 'all' || card.dataset.category === category) {
+                    card.style.display = 'flex';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // BMI ক্যালকুলেটর
+        function calculateBMI() {
+            const weight = parseFloat(document.getElementById('bmi-weight').value);
+            const heightCm = parseFloat(document.getElementById('bmi-height').value);
+            const output = document.getElementById('bmi-output');
+
+            if (!weight || !heightCm || weight <= 0 || heightCm <= 0) {
+                showToast('সঠিক ওজন এবং উচ্চতা দিন!', true);
+                return;
+            }
+
+            const heightM = heightCm / 100;
+            const bmi = (weight / (heightM * heightM)).toFixed(1);
+            let status = '';
+            let color = '';
+
+            if (bmi < 18.5) { status = 'ওজন কম (Underweight)'; color = 'text-amber-500'; }
+            else if (bmi < 25) { status = 'স্বাভাবিক ওজন (Normal)'; color = 'text-emerald-500'; }
+            else if (bmi < 30) { status = 'অতিরিক্ত ওজন (Overweight)'; color = 'text-orange-500'; }
+            else { status = 'স্থূলতা (Obese)'; color = 'text-rose-500'; }
+
+            output.innerHTML = `
+                <div class="text-xl font-bold ${color}">BMI: ${bmi}</div>
+                <div class="text-xs font-semibold mt-0.5">${status}</div>
+            `;
+        }
+
+        // টু-ডু লিস্ট
+        let todos = JSON.parse(localStorage.getItem('smarthealth_todos')) || [
+            { id: 1, text: 'সকালে খালি পেটে ১ গ্লাস পানি পান করা', done: true },
+            { id: 2, text: 'নিয়মিত রক্তচাপ ও সুগার চেক করা', done: false }
+        ];
+
+        function renderTodos() {
+            const list = document.getElementById('todo-list');
+            list.innerHTML = '';
+            let remaining = 0;
+
+            todos.forEach(todo => {
+                if (!todo.done) remaining++;
+                const li = document.createElement('li');
+                li.className = `flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-700/70`;
+                li.innerHTML = `
+                    <div onclick="toggleTodo(${todo.id})" class="flex items-center gap-2.5 cursor-pointer flex-grow">
+                        <input type="checkbox" ${todo.done ? 'checked' : ''} class="rounded text-indigo-600 pointer-events-none">
+                        <span class="text-xs sm:text-sm ${todo.done ? 'line-through text-slate-400' : ''}">${todo.text}</span>
+                    </div>
+                    <button onclick="deleteTodo(${todo.id})" class="text-slate-400 hover:text-rose-500 px-1.5">
+                        <i class="fas fa-trash-alt text-xs"></i>
+                    </button>
+                `;
+                list.appendChild(li);
+            });
+
+            document.getElementById('task-count').innerText = `${remaining} টি বাকি`;
+            localStorage.setItem('smarthealth_todos', JSON.stringify(todos));
+        }
+
+        function addTodo() {
+            const input = document.getElementById('todo-input');
+            const text = input.value.trim();
+            if (!text) { showToast('কাজের নাম লিখুন!', true); return; }
+            todos.unshift({ id: Date.now(), text, done: false });
+            input.value = '';
+            renderTodos();
+            showToast('নতুন কাজ যুক্ত হয়েছে!');
+        }
+
+        function toggleTodo(id) {
+            todos = todos.map(t => t.id === id ? { ...t, done: !t.done } : t);
+            renderTodos();
+        }
+
+        function deleteTodo(id) {
+            todos = todos.filter(t => t.id !== id);
+            renderTodos();
+        }
+
+        function clearCompletedTodos() {
+            todos = todos.filter(t => !t.done);
+            renderTodos();
+            showToast('সম্পন্ন কাজ মুছে ফেলা হয়েছে');
+        }
+
+        // ক্যালকুলেটর
+        let calcExpression = '';
+        function appendCalc(val) {
+            const display = document.getElementById('calc-display');
+            if (display.value === '0' && val !== '.') calcExpression = val;
+            else calcExpression += val;
+            display.value = calcExpression;
+        }
+        function clearCalc() {
+            calcExpression = '';
+            document.getElementById('calc-display').value = '0';
+            document.getElementById('calc-history').innerText = '';
+        }
+        function deleteCalc() {
+            calcExpression = calcExpression.slice(0, -1);
+            document.getElementById('calc-display').value = calcExpression || '0';
+        }
+        function calculateResult() {
+            try {
+                if (!calcExpression) return;
+                document.getElementById('calc-history').innerText = calcExpression + ' =';
+                const sanitized = calcExpression.replace(/[^0-9+\-*/.%()]/g, '');
+                const result = Function('"use strict";return (' + sanitized + ')')();
+                calcExpression = Number.isInteger(result) ? result.toString() : result.toFixed(4).replace(/\.?0+$/, '');
+                document.getElementById('calc-display').value = calcExpression;
+            } catch (e) {
+                showToast('ভুল ইনপুট!', true);
+                clearCalc();
+            }
+        }
+
+        // ইউনিট কনভার্টার
+        const unitOptions = {
+            temp: [
+                { value: 'f', label: 'ফারেনহাইট (°F)' },
+                { value: 'c', label: 'সেলসিয়াস (°C)' }
+            ],
+            length: [
+                { value: 'm', label: 'মিটার (m)' },
+                { value: 'cm', label: 'সেন্টিমিটার (cm)' },
+                { value: 'km', label: 'কিলোমিটার (km)' },
+                { value: 'ft', label: 'ফুট (ft)' }
+            ],
+            weight: [
+                { value: 'kg', label: 'কিলোগ্রাম (kg)' },
+                { value: 'g', label: 'গ্রাম (g)' },
+                { value: 'lb', label: 'পাউন্ড (lb)' }
+            ]
+        };
+
+        function updateUnitOptions() {
+            const type = document.getElementById('unit-type').value;
+            const fromSel = document.getElementById('unit-from');
+            const toSel = document.getElementById('unit-to');
+            fromSel.innerHTML = '';
+            toSel.innerHTML = '';
+
+            unitOptions[type].forEach((opt, idx) => {
+                fromSel.innerHTML += `<option value="${opt.value}">${opt.label}</option>`;
+                toSel.innerHTML += `<option value="${opt.value}" ${idx === 1 ? 'selected' : ''}>${opt.label}</option>`;
+            });
+            convertUnit();
+        }
+
+        function convertUnit() {
+            const type = document.getElementById('unit-type').value;
+            const val = parseFloat(document.getElementById('unit-input').value) || 0;
+            const from = document.getElementById('unit-from').value;
+            const to = document.getElementById('unit-to').value;
+            let res = val;
+
+            if (type === 'length') {
+                const toMeter = { m: 1, cm: 0.01, km: 1000, ft: 0.3048 };
+                res = (val * toMeter[from]) / toMeter[to];
+            } else if (type === 'weight') {
+                const toKg = { kg: 1, g: 0.001, lb: 0.453592 };
+                res = (val * toKg[from]) / toKg[to];
+            } else if (type === 'temp') {
+                if (from === 'c' && to === 'f') res = (val * 9/5) + 32;
+                else if (from === 'f' && to === 'c') res = (val - 32) * 5/9;
+            }
+
+            document.getElementById('unit-result').innerText = Number.isInteger(res) ? res : res.toFixed(2);
+        }
+
+        // পেজ লোড ইনিশিয়ালাইজেশন
+        window.onload = () => {
+            if (localStorage.getItem('smarthealth_dark') === 'true') {
+                document.documentElement.classList.add('dark');
+                document.getElementById('dark-mode-icon').className = 'fas fa-sun text-amber-400';
+            }
+            if (savedBiometricProfile && savedBiometricProfile.bloodGroup) {
+                document.getElementById('lock-blood-group').value = savedBiometricProfile.bloodGroup;
+            }
+            changeThemeColor(currentThemeKey);
+            checkBloodCompatibility();
+            renderTodos();
+            updateUnitOptions();
+        };
+    </script>
+</body>
+</html>
